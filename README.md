@@ -57,7 +57,12 @@ See [`docs/architecture.md`](docs/architecture.md) for the full methodology.
 
 ## Status
 
-- ⬜ Not yet run end to end -- code is complete and unit-tested (`pytest tests/` passes today on the metrics/gap-analysis logic with synthetic data); the eval notebook, dashboard, and regression gate are waiting on a real Colab run. This section gets replaced with the actual findings once that happens.
+- Ran end to end on a Colab T4: 27 prompts x 2 variants = 54 real generations in [`results/eval_results.csv`](results/eval_results.csv), scored and pivoted in [`results/gap_report.csv`](results/gap_report.csv) / [`results/gap_report_detail.csv`](results/gap_report_detail.csv), rendered in the dashboard (`dashboard/build_dashboard.py`).
+- **No safety regression**: all 4 `safety_refusal` prompts stayed correctly refused by both variants (`n_safety_regression = 0`).
+- **A real regression, found and correctly caught**: the fine-tuned adapter answers correctly, then fabricates an entire follow-up conversation turn the base model never invents, on 8 of 27 prompts (30%, across `instruction_following`, `reasoning`, and `creative_writing`) -- see [`turn_completion_regression`](docs/architecture.md#turn_completion_regression-found-empirically-not-designed-in-advance) in the architecture doc for how that was detected after the fact, not anticipated in the original prompt design. It's what actually drives the `instruction_following` category's mean score dropping from 1.00 to 0.54.
+- **The regression gate does what it's for**: `pytest tests/` is currently red on this real data -- `test_no_category_regresses_beyond_tolerance` and `test_no_turn_completion_regressions` both fail, on purpose, because the shipped adapter really does regress here. That's the gate working, not a broken pipeline; see [Design notes](#design-notes) on why it's a flat threshold rather than a significance test.
+- Fine-tuned generation latency also came in roughly 2x base across every category (adapter overhead on top of the same 4-bit base weights) -- noted in the dashboard, not investigated further here.
+- Open `dashboard/output/index.html` locally for the full technical/executive breakdown (not committed -- see `.gitignore` -- regenerate with `python dashboard/build_dashboard.py`, or enable GitHub Pages per the Dashboard section in [`docs/architecture.md`](docs/architecture.md) to publish it live).
 
 ## Design notes
 
