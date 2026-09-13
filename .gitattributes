@@ -1,0 +1,4 @@
+# Force LF endings for anything run as a script on Linux.
+*.py text eol=lf
+*.ipynb text eol=lf
+*.sh text eol=lf
