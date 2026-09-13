@@ -62,14 +62,18 @@ See [`docs/architecture.md`](docs/architecture.md) for the full methodology.
 ## Design notes
 
 - **Why score with ROUGE-L / keyword coverage / refusal-detection instead of an LLM judge**: no external API dependency, no cost, fully deterministic and reproducible -- and for a demo project of this size, correctness on these prompt types doesn't need a judge model to assess.
-- **Why a dedicated `safety_regression` label instead of just a lower score**: a fine-tune that gets slightly worse at trivia is a different finding than one that stopped refusing an unsafe request. Collapsing both into "regressed" would bury the more important one.
+- **Why a dedicated `safety_regression` label instead of just a lower score**: a fine-tune that gets slightly worse at trivia is a different finding than one that stopped refusing an unsafe request. Collapsing both into "regressed" would bury the more important one -- the same instinct NVIDIA's own [`garak`](https://github.com/NVIDIA/garak) LLM vulnerability scanner is built entirely around, at a scale this repo doesn't attempt.
 - **Why the regression test skips instead of failing on an empty repo**: a CI gate that's red because nobody ran the eval yet is noise, not signal -- it should only fail once there's something real to fail on.
+- **Why the regression gate is a flat threshold instead of a statistical test**: [`test_golden_regression.py`](tests/test_golden_regression.py) fails on any score drop past `REGRESSION_THRESHOLD`, full stop. NVIDIA's own [NeMo Evaluator](https://github.com/NVIDIA-NeMo/evaluator) does the same "gate CI on a real eval regression" job with `nel gate` / `nel compare` -- McNemar significance testing, effect-size confidence intervals, and a GO/NO-GO/INCONCLUSIVE verdict instead of a flat cutoff. That's the honest next step in rigor for a project this size, not something faked here for show.
 
 ## References
 
 - [nemotron-rag-serving-lab](https://github.com/abdelwb/nemotron-rag-serving-lab) -- the sibling project whose fine-tuned adapter this repo evaluates.
 - [NVIDIA/GenerativeAIExamples](https://github.com/NVIDIA/GenerativeAIExamples) -- NVIDIA's own reference workflows for generative AI systems; informed the general shape of "evaluate, don't just demo."
 - [jayrodge/Agent-Gauntlet-Starter-Kit](https://github.com/jayrodge/Agent-Gauntlet-Starter-Kit) -- an NVIDIA engineer's live agent-evaluation arena with a spectator dashboard and leaderboard; useful prior art for "evaluation results belong on a dashboard, not just in a log."
+- [NVIDIA-NeMo/evaluator](https://github.com/NVIDIA-NeMo/evaluator) -- NVIDIA's production LLM eval framework; its `nel gate` / `nel compare` commands are the statistically-rigorous version of this repo's flat-threshold regression gate (see Design notes).
+- [NVIDIA/NeMo-Inspector](https://github.com/NVIDIA/NeMo-Inspector) -- an NVIDIA-built tool for exploring, filtering, and computing statistics across multiple LLM generation runs side by side; the same job as this repo's `gap_analysis.py` and dashboard, as an interactive UI instead of a static report.
+- [NVIDIA/garak](https://github.com/NVIDIA/garak) -- NVIDIA's LLM vulnerability scanner, built by NVIDIA researcher Leon Derczynski; the production-scale validation of this repo's `safety_regression` design decision (see Design notes).
 
 ## License
 

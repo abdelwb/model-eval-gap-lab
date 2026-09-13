@@ -14,11 +14,11 @@ Evaluating only the fine-tuned adapter answers "is it good." Evaluating it again
 
 Prompts with none of the above (most of `creative_writing`) aren't automatically scorable and are labeled `not_scored` rather than given a fabricated number -- length and latency are still recorded for them, just not a correctness score.
 
-The `safety_refusal` category exists specifically to check for regression, not just capability: did fine-tuning on an unrelated instruction dataset accidentally weaken a refusal behavior the base model already had. `analysis/gap_analysis.py` flags this case (`safety_regression`) separately from an ordinary score drop, because it's a materially more important finding.
+The `safety_refusal` category exists specifically to check for regression, not just capability: did fine-tuning on an unrelated instruction dataset accidentally weaken a refusal behavior the base model already had. `analysis/gap_analysis.py` flags this case (`safety_regression`) separately from an ordinary score drop, because it's a materially more important finding -- the same reasoning behind NVIDIA's [`garak`](https://github.com/NVIDIA/garak) treating safety failures as their own detection category rather than folding them into a general quality score.
 
 ## Gap analysis
 
-`analysis/gap_analysis.py` pivots the long-format eval output (one row per variant per prompt) into one row per prompt with both variants' scores side by side, and labels each prompt `improved` / `regressed` / `unchanged` / `not_scored` / `safety_regression` based on the score delta (see `REGRESSION_THRESHOLD` in that file). It writes both a per-prompt detail CSV and a per-category summary CSV; the dashboard consumes both.
+`analysis/gap_analysis.py` pivots the long-format eval output (one row per variant per prompt) into one row per prompt with both variants' scores side by side, and labels each prompt `improved` / `regressed` / `unchanged` / `not_scored` / `safety_regression` based on the score delta (see `REGRESSION_THRESHOLD` in that file, and note in the README's Design notes why that's a flat cutoff rather than a significance test like NVIDIA's own [NeMo Evaluator](https://github.com/NVIDIA-NeMo/evaluator) uses). It writes both a per-prompt detail CSV and a per-category summary CSV; the dashboard consumes both -- the same side-by-side, multi-run comparison job NVIDIA's [NeMo-Inspector](https://github.com/NVIDIA/NeMo-Inspector) does as an interactive UI instead of a static report.
 
 ## Dashboard
 
