@@ -1,0 +1,7 @@
+transformers>=4.44,<5.0
+peft>=0.12
+accelerate>=0.33
+bitsandbytes>=0.43
+huggingface_hub>=0.24
+torch>=2.3
+pandas>=2.2
