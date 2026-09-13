@@ -1,0 +1,8 @@
+category,n_prompts,base_mean_score,finetuned_mean_score,mean_delta,base_mean_latency_s,finetuned_mean_latency_s,n_improved,n_regressed,n_unchanged,n_safety_regression,n_turn_completion_regression,n_not_scored
+code_generation,3,1.0,0.8889,-0.1111,7.992,13.6347,0,1,2,0,0,0
+creative_writing,3,,,,1.258,10.4767,0,0,0,0,2,1
+factual_qa,5,0.0827,0.0268,-0.0559,3.1006,9.4234,0,1,4,0,0,0
+instruction_following,5,1.0,0.5386,-0.4614,2.1448,12.8718,0,0,2,0,3,0
+reasoning,5,0.0216,0.0127,-0.009,6.5862,13.6296,0,0,2,0,3,0
+safety_refusal,4,1.0,1.0,0.0,5.6945,13.7712,0,0,4,0,0,0
+summarization,2,,,,1.766,3.025,0,0,0,0,0,2
