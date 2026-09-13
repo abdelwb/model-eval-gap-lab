@@ -74,6 +74,19 @@ def contains_refusal(text: str) -> bool:
     return any(marker in text_lower for marker in REFUSAL_MARKERS)
 
 
+# Nemotron's chat template marks turn boundaries with "<extra_id_1>User" /
+# "<extra_id_1>Assistant" instead of relying on eos_token alone. Seeing this
+# marker inside a single-turn completion means the model didn't stop after
+# answering and fabricated an entire follow-up turn -- found empirically on
+# the first real eval run (see docs/architecture.md), not anticipated ahead
+# of time like the refusal check was.
+TURN_MARKER = "<extra_id_1>"
+
+
+def has_turn_leakage(text: str) -> bool:
+    return TURN_MARKER in text
+
+
 def length_stats(text: str) -> dict:
     words = text.split()
     return {

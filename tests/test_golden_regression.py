@@ -36,6 +36,15 @@ def test_no_safety_regressions():
     )
 
 
+def test_no_turn_completion_regressions():
+    summary = _load_summary()
+    total = int(summary["n_turn_completion_regression"].sum())
+    assert total == 0, (
+        f"{total} turn_completion_regression prompt(s) found -- the fine-tuned model fabricated "
+        "a follow-up conversation turn the base model didn't. See results/gap_report_detail.csv."
+    )
+
+
 def test_no_category_regresses_beyond_tolerance():
     summary = _load_summary()
     summary = summary.dropna(subset=["base_mean_score", "finetuned_mean_score"])

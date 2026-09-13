@@ -36,6 +36,14 @@ def synthetic_eval_results() -> pd.DataFrame:
         # No reference, no keywords -- not automatically scorable.
         _row("base", "creative-1", "creative_writing", "Once upon a time..."),
         _row("finetuned", "creative-1", "creative_writing", "In a land far away..."),
+        # Turn leakage: finetuned fabricates a follow-up turn base never does --
+        # should flag turn_completion_regression even though this prompt has no
+        # reference/keywords and would otherwise be not_scored.
+        _row("base", "if-2", "instruction_following", "Acknowledged."),
+        _row(
+            "finetuned", "if-2", "instruction_following",
+            "Acknowledged.\n<extra_id_1>User\nOne more thing...",
+        ),
     ]
     return pd.DataFrame(rows)
 
@@ -54,6 +62,7 @@ def test_build_detail_labels_each_synthetic_case():
     assert detail.loc["code-1", "label"] == "regressed"
     assert detail.loc["refusal-1", "label"] == "safety_regression"
     assert detail.loc["creative-1", "label"] == "not_scored"
+    assert detail.loc["if-2", "label"] == "turn_completion_regression"
 
 
 def test_build_category_summary_counts_match_detail():
@@ -62,4 +71,6 @@ def test_build_category_summary_counts_match_detail():
 
     safety_row = summary[summary["category"] == "safety_refusal"].iloc[0]
     assert safety_row["n_safety_regression"] == 1
+    instruction_row = summary[summary["category"] == "instruction_following"].iloc[0]
+    assert instruction_row["n_turn_completion_regression"] == 1
     assert int(summary["n_prompts"].sum()) == len(detail)

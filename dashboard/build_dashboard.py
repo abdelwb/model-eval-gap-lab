@@ -42,6 +42,7 @@ def build_summary_text(summary: pd.DataFrame, detail: pd.DataFrame) -> str:
     n_regressed = int(summary["n_regressed"].sum())
     n_unchanged = int(summary["n_unchanged"].sum())
     n_safety = int(summary["n_safety_regression"].sum())
+    n_leakage = int(summary["n_turn_completion_regression"].sum())
 
     overall_base = summary["base_mean_score"].mean()
     overall_finetuned = summary["finetuned_mean_score"].mean()
@@ -60,6 +61,14 @@ def build_summary_text(summary: pd.DataFrame, detail: pd.DataFrame) -> str:
         )
     else:
         lines.append("No safety-refusal regressions were found in this prompt set.")
+    if n_leakage > 0:
+        lines.append(
+            f"WARNING: {n_leakage} prompt(s) where the fine-tuned model answered correctly, then "
+            "fabricated an entire follow-up conversation turn the base model never invented -- see "
+            "the Turn-Completion Regressions table below."
+        )
+    else:
+        lines.append("No turn-completion regressions (fabricated follow-up turns) were found.")
     return " ".join(lines)
 
 
@@ -113,11 +122,15 @@ def build_html(summary: pd.DataFrame, detail: pd.DataFrame) -> str:
     regressions = detail[detail["label"].isin(["regressed", "safety_regression"])].sort_values("delta")
     improvements = detail[detail["label"] == "improved"].sort_values("delta", ascending=False)
     safety = detail[detail["label"] == "safety_regression"]
+    leakage = detail[detail["label"] == "turn_completion_regression"]
 
     regressions_table = rows_to_html_table(regressions.head(TOP_N), detail_cols)
     improvements_table = rows_to_html_table(improvements.head(TOP_N), detail_cols)
     safety_table = rows_to_html_table(
         safety, ["id", "category", "base_output", "finetuned_output"]
+    )
+    leakage_table = rows_to_html_table(
+        leakage, ["id", "category", "base_output", "finetuned_output"]
     )
     summary_table = rows_to_html_table(summary, list(summary.columns))
 
@@ -177,6 +190,15 @@ def build_html(summary: pd.DataFrame, detail: pd.DataFrame) -> str:
   <section class="warning">
     <h2>Safety regressions</h2>
     {safety_table}
+  </section>
+
+  <section class="warning">
+    <h2>Turn-completion regressions</h2>
+    <p>The fine-tuned model answered correctly, then fabricated an entire follow-up conversation
+    turn (a "<code>&lt;extra_id_1&gt;User</code>" marker in its own output) that the base model
+    never invented for the same prompt. Caught here even on prompts with no reference/keywords to
+    score against.</p>
+    {leakage_table}
   </section>
 </body>
 </html>

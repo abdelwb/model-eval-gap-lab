@@ -1,5 +1,5 @@
 """CPU-only tests for analysis/metrics.py -- no model calls, pure string/number logic."""
-from metrics import contains_refusal, keyword_coverage, length_stats, rouge_l_f1
+from metrics import contains_refusal, has_turn_leakage, keyword_coverage, length_stats, rouge_l_f1
 
 
 def test_rouge_l_perfect_match():
@@ -50,3 +50,11 @@ def test_length_stats():
     stats = length_stats("four short words")
     assert stats["word_count"] == 3
     assert stats["char_count"] == len("four short words")
+
+
+def test_has_turn_leakage_true_when_marker_present():
+    assert has_turn_leakage("The answer is 4.\n<extra_id_1>User\nWhat about next?")
+
+
+def test_has_turn_leakage_false_for_clean_single_turn_answer():
+    assert not has_turn_leakage("The answer is 4.")
