@@ -1,0 +1,7 @@
+# Convenience umbrella for local (CPU-only) linting/testing of this repo.
+# eval/ needs its own requirements.txt on a GPU host; dashboard/ needs its
+# own (plotly) to actually build the HTML report locally.
+pytest>=8.0
+ruff>=0.5
+pandas>=2.2
+numpy>=1.26

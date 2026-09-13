@@ -1,0 +1,26 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install CPU-only dev/test dependencies
+        run: pip install -r requirements.txt
+
+      - name: Lint
+        # Scoped to plain .py source (skips eval/, which is a Colab notebook
+        # with IPython magics ruff doesn't parse as Python).
+        run: ruff check analysis tests
+
+      - name: Test
+        run: pytest tests/ -v
